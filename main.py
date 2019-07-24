@@ -6,11 +6,11 @@ from roomCheck import main as roomCheck
 from generateTeamDocs import main as generateTeamDocs
 
 if __name__ == "__main__":
-    file = filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))
-    
+    # file = filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))
+    file = 'FLL Schedule.xlsx'
+
+
     vert = verticalCheck(file=file) 
     room = roomCheck(file=file)
-
-    input()
     
     generateTeamDocs(file=file)

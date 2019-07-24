@@ -19,23 +19,23 @@ def main(file = None):
     check = True
     try:
         for col in range(ncols):
-            if col is 0 or col is 1 or col is 2 or col is 3:
+            if col in [0,1,2,3]:
                 continue
-            hits = []
-            for row in range(nrows):
-                alreadyInList = False
-                val = sheet.cell_value(rowx=row, colx=col)
-                for i in hits:
-                    if val == i:
-                        alreadyInList = True
 
-                if not alreadyInList:
-                    hits.append(val)
-                else:
-                    check = False
+            data = []
+            for row in range(nrows):
+                value = sheet.cell(rowx=row, colx=col).value
+
+                if value == '' or value == 'Judge’s Break' or value == 'Coach Meeting' or value == 'Opening Ceremony' or value == 'Line Dancing':
+                    continue
+
+                if value in data:
                     log = open('verticalCheck.txt', 'a+')
-                    log.write('col:{col}\trow:{row}\trepeat_value:{value}\n'.format(col=col, row=row, value=sheet.cell_value(col,row)))
+                    log.write('col:{col}\trow:{row}\trepeat_value:{value}\n'.format(col=col, row=row, value=value))
                     log.close()
+                    check = False
+                else:
+                    data.append(value)
     except:
         pass
 

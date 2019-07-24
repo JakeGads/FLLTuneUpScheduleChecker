@@ -12,7 +12,13 @@ class Event():
 
 def time_convert(x):
     x = int(x * 24 * 3600) # convert to number of seconds
-    return time(x//3600, (x%3600)//60) # hours, minutes, seconds
+    hour = time(x//3600, (x%3600)//60).hour
+    if hour > 12:
+        hour -= 12
+    minute = time(x//3600, (x%3600)//60).minute + 1
+    if minute < 10:
+        minute = '0' + str(minute)
+    return str(hour) + ':' + str(minute) 
 
 
 def main(file = None):
@@ -33,7 +39,7 @@ def main(file = None):
         name = ''
         for col in range(sheet.ncols):
             if col is 0:
-                room = sheet.cell(rowx=row,colx=col).value
+                room = sheet.cell(rowx=row,colx=col).value.replace('-ii','').replace('-i','')
                 continue
             if col is 1:
                 number = sheet.cell(rowx=row,colx=col).value
