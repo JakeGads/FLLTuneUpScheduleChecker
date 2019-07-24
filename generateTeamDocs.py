@@ -1,12 +1,18 @@
 import xlrd #.cell(rowx, colx)
-import docx
+# import docx
 from tkinter import filedialog
-
+from datetime import time
 class Event():
     def __init__(self, title, time, session):
         self.title = title
         self.session = session
         self.time = time
+    def __str__(self):
+        return '{time}:{session}\t{title}'.format(time=self.time, session=self.session, title=self.title)
+
+def time_convert(x):
+    x = int(x * 24 * 3600) # convert to number of seconds
+    return time(x//3600, (x%3600)//60) # hours, minutes, seconds
 
 
 def main(file = None):
@@ -27,13 +33,22 @@ def main(file = None):
         name = ''
         for col in range(sheet.ncols):
             if col is 0:
-                room = sheet.cell_value(row,col)
+                room = sheet.cell(rowx=row,colx=col).value
                 continue
             if col is 1:
-                number = sheet.cell_value(row, col)
+                number = sheet.cell(rowx=row,colx=col).value
                 continue
             if col is 2:
-                name = sheet.cell_value(row,col)
-            
-            if sheet.cell_type(row, col) is not xlrd.empty_cell:
-                sched.append(Event(sheet.cell_value(row, col), sheet.cell_value(1, col), sheet.cell(0, col)))
+                name = sheet.cell(rowx=row,colx=col).value
+                continue
+            if col is 3:
+                continue
+
+            if sheet.cell_type(row, col) != xlrd.empty_cell and sheet.cell_value(row,col) != '':
+                sched.append(Event(sheet.cell(rowx=row,colx=col).value, time_convert(sheet.cell(rowx=1,colx=col).value), sheet.cell(rowx=0,colx=col).value))
+
+        print('\n\n{room}\t{number}\t{name}'.format(room=room, number=number, name=name))
+        
+        for i in sched:
+            print('\t\t\t'+str(i))
+

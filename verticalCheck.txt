@@ -1,0 +1,22 @@
+col:4	row:5	repeat_value:Robot Judge: Grp 1
+col:4	row:8	repeat_value:
+col:4	row:9	repeat_value:
+col:4	row:11	repeat_value:
+col:4	row:12	repeat_value:Project Judge Grp 1
+col:4	row:13	repeat_value:
+col:4	row:16	repeat_value:Field 1 Green
+col:4	row:17	repeat_value:Coach Meeting
+col:4	row:18	repeat_value:
+col:4	row:19	repeat_value:Field: 1 Green
+col:4	row:23	repeat_value:Field: 1 Green
+col:4	row:24	repeat_value:
+col:4	row:25	repeat_value:
+col:4	row:28	repeat_value:
+col:4	row:29	repeat_value:
+col:4	row:32	repeat_value:Line Dancing
+col:4	row:33	repeat_value:
+col:4	row:35	repeat_value:Field: 1 Green
+col:4	row:36	repeat_value:
+col:4	row:37	repeat_value:Line Dancing
+col:4	row:40	repeat_value:
+col:4	row:41	repeat_value:
