@@ -1,4 +1,0 @@
-col:6	row:39	repeat_value:Robot Judge Grp 3
-col:12	row:44	repeat_value:Field 4 Gold
-col:14	row:18	repeat_value:Field 4 Green
-col:14	row:44	repeat_value:Field 4 Gold
