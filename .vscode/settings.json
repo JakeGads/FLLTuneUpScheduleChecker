@@ -1,3 +1,6 @@
 {
-    "python.pythonPath": "C:\\Users\\JakeWin10\\AppData\\Local\\Programs\\Python\\Python37\\python.exe"
+    "python.pythonPath": "/usr/bin/python",
+    "python.linting.pylintEnabled": false,
+    "python.linting.banditEnabled": true,
+    "python.linting.enabled": true
 }

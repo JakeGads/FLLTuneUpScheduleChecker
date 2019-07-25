@@ -4,6 +4,9 @@ from datetime import time
 # User defined
 import xlrd
 
+from docx import Document
+from docx.shared import Inches
+
 def reversColConvert(x):
     alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     length = len(alpha)
@@ -22,10 +25,11 @@ def reversColConvert(x):
     return alpha[x]
 
 def verticalCheck(file = None):
-
-    log = open('verticalCheck.txt', 'w+')
-    log.close()
-
+    try:
+        os.remove('verticalCheck.txt')
+    except:
+        None
+    
     if file is None:
         book = xlrd.open_workbook(filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*"))))
     else:
@@ -65,18 +69,21 @@ def verticalCheck(file = None):
     return check
 
 def roomCheck(file=None):
-    log = open('roomCheck.txt', 'w+')
-    log.close()
+    try:
+        os.remove('roomCheck.txt')
+    except:
+        None
+    
     if file is None:
         book = xlrd.open_workbook(filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*"))))
     else:
         book = xlrd.open_workbook(file)
 
     sheet = book.sheet_by_index(0)
-
     check = True
-
     roomCol = 0
+
+    
 
     try:
         for row in range(sheet.nrows):
@@ -106,11 +113,11 @@ def roomCheck(file=None):
                         log = open('roomCheck.txt', 'a+')
                         log.write('col:{col}\trow:{row}\n'.format(col=reversColConvert(col), row=row + 1))
                         log.close()
-                
+                            
     
                     
     except:
-        pass
+        None
 
     if check:
         print('RoomCheck has been cleared')
@@ -133,20 +140,26 @@ def generateTeamDocs(file = None):
         hour = time(x//3600, (x%3600)//60).hour
         if hour > 12:
             hour -= 12
-        minute = time(x//3600, (x%3600)//60).minute + 1
+        minute = time(x//3600, (x%3600)//60).minute
         if minute < 10:
             minute = '0' + str(minute)
         return str(hour) + ':' + str(minute) 
 
     def main(file = None):
+        try:
+            os.mkdir('teamSchedule')
+        except:
+            None
+
         if file is None:
             book = xlrd.open_workbook(filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*"))))
         else:
             book = xlrd.open_workbook(file)
 
         sheet = book.sheet_by_index(0)
-
+        multiDoc = Document()
         for row in range(sheet.nrows):
+            singleDoc = Document()
             if row is 0 or row is 1:
                 continue
             
@@ -170,10 +183,59 @@ def generateTeamDocs(file = None):
                 if sheet.cell_type(row, col) != xlrd.empty_cell and sheet.cell_value(row,col) != '':
                     sched.append(TeamEvent(sheet.cell(rowx=row,colx=col).value, time_convert(sheet.cell(rowx=1,colx=col).value), sheet.cell(rowx=0,colx=col).value))
 
-            print('\n\n{room}\t{number}\t{name}'.format(room=room, number=number, name=name))
+            # print('\n\n{room}\t{number}\t{name}'.format(room=room, number=number, name=name))
             
+            # for i in sched:
+            #    print('\t\t\t'+str(i))
+            try: 
+                singleDoc.add_heading('{number}\t\t{name}'.format(number=int(number), name=name))
+                multiDoc.add_heading('{number}\t\t{name}'.format(number=int(number), name=name))
+            except:
+                break
+                singleDoc.add_heading('{number}\t\t{name}'.format(number=number, name=name))
+                multiDoc.add_heading('{number}\t\t{name}'.format(number=number, name=name))
+            try:
+                singleDoc.add_paragraph('Room {room}'.format(room=int(room)))
+                multiDoc.add_paragraph('Room {room}'.format(room=int(room)))
+            except:
+                singleDoc.add_paragraph('Room {room}'.format(room=room))
+                multiDoc.add_paragraph('Room {room}'.format(room=room))
+
+            singleTable = singleDoc.add_table(rows=1, cols=3)
+            singleHeader = singleTable.rows[0].cells
+            singleHeader[0].text = 'Time'
+            singleHeader[1].text = 'Session'
+            singleHeader[2].text = 'Event'
+
             for i in sched:
-                print('\t\t\t'+str(i))
+                tbRow = singleTable.add_row().cells
+                tbRow[0].text = i.time
+                tbRow[1].text = i.session
+                tbRow[2].text = i.title
+
+
+            multiTable = multiDoc.add_table(rows=1, cols=3)
+            multiHeader = multiTable.rows[0].cells
+            multiHeader[0].text = 'Time'
+            multiHeader[1].text = 'Session'
+            multiHeader[2].text = 'Event'
+
+            for i in sched:
+                tbRow = multiTable.add_row().cells
+                tbRow[0].text = i.time
+                tbRow[1].text = i.session
+                tbRow[2].text = i.title
+
+            from docx.enum.text import WD_ALIGN_PARAGRAPH
+            singleCentered = singleDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
+            singleCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            multiCentered = multiDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
+            multiCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            try:
+                singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=int(number), name=name))
+            except:
+                singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=number, name=name))
+        multiDoc.save('teamSchedule//0_Full_List.docx')
 
     main(file)
 
@@ -190,4 +252,4 @@ if __name__ == "__main__":
     vert = verticalCheck(file=file) 
     room = roomCheck(file=file)
     
-    # generateTeamDocs(file=file) 
+    generateTeamDocs(file=file) 
