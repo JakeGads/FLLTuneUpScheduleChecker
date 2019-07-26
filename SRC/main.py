@@ -192,8 +192,7 @@ def generateTeamDocs(file = None):
                 multiDoc.add_heading('{number}\t\t{name}'.format(number=int(number), name=name))
             except:
                 break
-                singleDoc.add_heading('{number}\t\t{name}'.format(number=number, name=name))
-                multiDoc.add_heading('{number}\t\t{name}'.format(number=number, name=name))
+
             try:
                 singleDoc.add_paragraph('Room {room}'.format(room=int(room)))
                 multiDoc.add_paragraph('Room {room}'.format(room=int(room)))
@@ -226,7 +225,8 @@ def generateTeamDocs(file = None):
                 tbRow[1].text = i.session
                 tbRow[2].text = i.title
 
-            from docx.enum.text import WD_ALIGN_PARAGRAPH
+            from docx.enum.text import WD_ALIGN_PARAGRAPH   # VS will through an error this is actual true
+
             singleCentered = singleDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
             singleCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
             multiCentered = multiDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
@@ -236,20 +236,90 @@ def generateTeamDocs(file = None):
             except:
                 singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=number, name=name))
         multiDoc.save('teamSchedule//0_Full_List.docx')
+        
+    main(file=file)
 
-    main(file)
+def generateJudgeDocs(file=None):
+    class JudgeEvent():
+        def __init__(self, teamNumber, teamName, room, time, session):
+            self.teamNumber = teamNumber
+            self.teamName = teamName
+            self.room = room
+            self.time = time
+            self.session = session
+
+    def time_convert(x):
+        x = int(x * 24 * 3600) # convert to number of seconds
+        hour = time(x//3600, (x%3600)//60).hour
+        if hour > 12:
+            hour -= 12
+        minute = time(x//3600, (x%3600)//60).minute
+        if minute < 10:
+            minute = '0' + str(minute)
+        return str(hour) + ':' + str(minute) 
+
+    def findJudges(sheet):
+        hits = []
+    
+        
+        for col in range(sheet.ncols-1):
+            for row in range(sheet.nrows-1):
+                val = sheet.cell(colx=col, rowx=row).value
+                try:
+                    if 'judge' in val.lower() and val not in hits:
+                        hits.append(val)
+                except:
+                    None
+        
+        return hits
 
 
+    def main(file = None):
+        try:
+            sheet = xlrd.open_workbook(file).sheet_by_index(0)
+        except:
+            sheet= xlrd.open_workbook(filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))).sheet_by_index(0)
+
+        judgeGroups = findJudges(sheet)
+
+        session_row = 0
+        time_row = 1 
+
+        room_col = 0
+        team_num_col = 1
+        team_name_col = 2
+
+        for group in judgeGroups:
+            judgeSchedule = []
+            for col in range(sheet.ncols-1):
+                for row in range(sheet.nrows-1):
+                    val = sheet.cell(colx=col, rowx=row).value
+
+                    if val == group:
+                        # teamNumber, teamName, room, time, session
+                        judgeSchedule.append(
+                            JudgeEvent(
+                                sheet.cell(colx=team_num_col, rowx=row).value, 
+                                sheet.cell(colx=team_name_col, rowx=row).value, 
+                                sheet.cell(colx=room_col, rowx=row).value,
+                                time_convert(sheet.cell(colx=col, rowx= time_row).value),
+                                sheet.cell(colx=col, rowx= session_row).value
+                            )
+                        )
+            print(group)
+            for i in judgeSchedule:
+                print('\t{time} {session}:\t{room}, {num} {name}'.format(time = i.time, session=i.session, room=i.room, num=int(i.teamNumber), name=i.teamName))
 
 
-
+    main(file=file)
 
 if __name__ == "__main__":
-    # file = filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))
-    file = 'FLL Schedule.xlsx'
+    try:
+        file = 'FLL Schedule.xlsx'
+    except:
+        file = filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))
 
 
-    vert = verticalCheck(file=file) 
-    room = roomCheck(file=file)
-    
-    generateTeamDocs(file=file) 
+    if verticalCheck(file=file) and roomCheck(file=file):
+        generateTeamDocs(file=file) 
+        generateJudgeDocs(file=file)
