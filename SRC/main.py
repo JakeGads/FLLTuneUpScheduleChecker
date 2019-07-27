@@ -6,6 +6,7 @@ import xlrd
 
 from docx import Document
 from docx.shared import Inches
+from docx.enum.text import WD_ALIGN_PARAGRAPH # this does exist even if VS tells you otherwise
 
 def reversColConvert(x):
     alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
@@ -223,9 +224,7 @@ def generateTeamDocs(file = None):
                 tbRow = multiTable.add_row().cells
                 tbRow[0].text = i.time
                 tbRow[1].text = i.session
-                tbRow[2].text = i.title
-
-            from docx.enum.text import WD_ALIGN_PARAGRAPH   # VS will through an error this is actual true
+                tbRow[2].text = i.title   # VS will through an error this is actual true
 
             singleCentered = singleDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
             singleCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -276,6 +275,11 @@ def generateJudgeDocs(file=None):
 
     def main(file = None):
         try:
+            os.mkdir('judgeSchedule')
+        except:
+            None
+
+        try:
             sheet = xlrd.open_workbook(file).sheet_by_index(0)
         except:
             sheet= xlrd.open_workbook(filedialog.askopenfilename(title = "Select File",filetypes = (("xlsx files","*.xlsx"),("xls files","*.xls"),("all files","*.*")))).sheet_by_index(0)
@@ -289,8 +293,11 @@ def generateJudgeDocs(file=None):
         team_num_col = 1
         team_name_col = 2
 
+
+        multiDoc = Document()
         for group in judgeGroups:
             judgeSchedule = []
+            singleDoc = Document()
             for col in range(sheet.ncols-1):
                 for row in range(sheet.nrows-1):
                     val = sheet.cell(colx=col, rowx=row).value
@@ -306,12 +313,62 @@ def generateJudgeDocs(file=None):
                                 sheet.cell(colx=col, rowx= session_row).value
                             )
                         )
-            print(group)
-            for i in judgeSchedule:
-                print('\t{time} {session}:\t{room}, {num} {name}'.format(time = i.time, session=i.session, room=i.room, num=int(i.teamNumber), name=i.teamName))
+            singleDoc.add_heading(group)
+            multiDoc.add_heading(group)
 
+            table = singleDoc.add_table(rows=1, cols=5)
+            tbHead = table.rows[0].cells
+            tbHead[0].text = 'Time'
+            tbHead[1].text = 'Session'
+            tbHead[2].text = 'Room'
+            tbHead[3].text = 'Team Number'
+            tbHead[4].text = 'Team Name'
+
+            for i in judgeSchedule:
+                tbRow = table.add_row().cells
+                tbRow[0].text = i.time
+                tbRow[1].text = i.session
+                tbRow[2].text = i.room
+                tbRow[3].text = str(int(i.teamNumber))
+                tbRow[4].text = i.teamName
+
+            table = multiDoc.add_table(rows=1, cols=5)
+            tbHead = table.rows[0].cells
+            tbHead[0].text = 'Time'
+            tbHead[1].text = 'Session'
+            tbHead[2].text = 'Room'
+            tbHead[3].text = 'Team Number'
+            tbHead[4].text = 'Team Name'
+
+            for i in judgeSchedule:
+                tbRow = table.add_row().cells
+                tbRow[0].text = i.time
+                tbRow[1].text = i.session
+                tbRow[2].text = i.room
+                tbRow[3].text = str(int(i.teamNumber))
+                tbRow[4].text = i.teamName
+            
+            multiDoc.add_page_break()
+            singleDoc.save('judgeSchedule//{group}.docx'.format(group=group))
+        multiDoc.save('judgeSchedule//Full_Schedule.docx')
+
+            
+            
+        
 
     main(file=file)
+
+def pdfRender(folder):
+    from subprocess import call
+    og = os.getcwd()
+
+    call('cd {loc}'.format(loc = folder))
+
+    for i in os.listdir():
+        # convert
+
+
+    call('cd {og}'.format(og=og))
 
 if __name__ == "__main__":
     try:
@@ -321,5 +378,16 @@ if __name__ == "__main__":
 
 
     if verticalCheck(file=file) and roomCheck(file=file):
+        print('generating team schedules')
         generateTeamDocs(file=file) 
+        print('generating judge schedules')
         generateJudgeDocs(file=file)
+
+        if os.name == 'Windows':
+            print('rendering docs as pdf')
+            pdfRender('judgeSchedule')
+            pdfRender('teamSchedule')
+        else:
+            print('PDF rendering is only avalible on windows')
+        
+        
