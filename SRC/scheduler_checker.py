@@ -8,7 +8,7 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH # this does exist even if VS tells you otherwise
 
-def reversColConvert(x):
+def reverseColConvert(x):
     alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     length = len(alpha)
     if length >= 2:
@@ -56,7 +56,7 @@ def verticalCheck(file = None):
 
             if value in data:
                 log = open('verticalCheck.txt', 'a+')
-                log.write('col:{col}\trow:{row}\trepeat_value:{value}\n'.format(col= reversColConvert(col), row=row + 1, value=value))
+                log.write('col:{col}\trow:{row}\trepeat_value:{value}\n'.format(col= reverseColConvert(col), row=row + 1, value=value))
                 log.close()
                 check = False
             else:
@@ -112,7 +112,7 @@ def roomCheck(file=None):
                     else:
                         check = False
                         log = open('roomCheck.txt', 'a+')
-                        log.write('col:{col}\trow:{row}\n'.format(col=reversColConvert(col), row=row + 1))
+                        log.write('col:{col}\trow:{row}\n'.format(col=reverseColConvert(col), row=row + 1))
                         log.close()
                             
     
@@ -360,12 +360,21 @@ def generateJudgeDocs(file=None):
 
 def pdfRender(folder):
     from subprocess import call
+    try:
+        import comtypes.client
+    except:
+        exit()
+
     og = os.getcwd()
 
     call('cd {loc}'.format(loc = folder))
 
     for i in os.listdir():
-        # convert
+        word = comtypes.client.CreateObject('Word.Application')
+        doc = word.Documents.Open(i)
+        doc.SaveAs(i.replace('.docx','.pdf'), FileFormat=17)
+        doc.Close()
+        word.Quit()
 
 
     call('cd {og}'.format(og=og))
