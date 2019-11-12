@@ -366,8 +366,8 @@ def pdfRender(folder):
         exit()
 
     og = os.getcwd()
-
-    call('cd {loc}'.format(loc = folder))
+    
+    os.walk(og + "\\" + folder)
 
     for i in os.listdir():
         word = comtypes.client.CreateObject('Word.Application')
@@ -377,7 +377,7 @@ def pdfRender(folder):
         word.Quit()
 
 
-    call('cd {og}'.format(og=og))
+    os.walk(og)
 
 if __name__ == "__main__":
     try:
@@ -392,7 +392,7 @@ if __name__ == "__main__":
         print('generating judge schedules')
         generateJudgeDocs(file=file)
 
-        if os.name == 'Windows':
+        if os.name == 'nt':
             print('rendering docs as pdf')
             pdfRender('judgeSchedule')
             pdfRender('teamSchedule')
