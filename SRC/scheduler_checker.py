@@ -161,7 +161,7 @@ def generateTeamDocs(file = None):
         multiDoc = Document()
         for row in range(sheet.nrows):
             singleDoc = Document()
-            if row is 0 or row is 1:
+            if row == 0 or row == 1:
                 continue
             
             sched = []
@@ -169,16 +169,16 @@ def generateTeamDocs(file = None):
             number = ''
             name = ''
             for col in range(sheet.ncols):
-                if col is 0:
+                if col == 0:
                     room = sheet.cell(rowx=row,colx=col).value.replace('-ii','').replace('-i','')
                     continue
-                if col is 1:
+                if col == 1:
                     number = sheet.cell(rowx=row,colx=col).value
                     continue
-                if col is 2:
+                if col == 2:
                     name = sheet.cell(rowx=row,colx=col).value
                     continue
-                if col is 3:
+                if col == 3:
                     continue
 
                 if sheet.cell_type(row, col) != xlrd.empty_cell and sheet.cell_value(row,col) != '':
@@ -236,7 +236,6 @@ def generateTeamDocs(file = None):
                 singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=number, name=name))
         multiDoc.save('teamSchedule//0_Full_List.docx')
         
-    main(file=file)
 
 def generateJudgeDocs(file=None):
     class JudgeEvent():
@@ -329,7 +328,7 @@ def generateJudgeDocs(file=None):
                 tbRow[0].text = i.time
                 tbRow[1].text = i.session
                 tbRow[2].text = i.room
-                tbRow[3].text = str(int(i.teamNumber))
+                tbRow[3].text = str(i.teamNumber)
                 tbRow[4].text = i.teamName
 
             table = multiDoc.add_table(rows=1, cols=5)
@@ -345,7 +344,7 @@ def generateJudgeDocs(file=None):
                 tbRow[0].text = i.time
                 tbRow[1].text = i.session
                 tbRow[2].text = i.room
-                tbRow[3].text = str(int(i.teamNumber))
+                tbRow[3].text = str(i.teamNumber)
                 tbRow[4].text = i.teamName
             
             multiDoc.add_page_break()
