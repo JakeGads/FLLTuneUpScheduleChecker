@@ -8,6 +8,23 @@ from docx import Document
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH # this does exist even if VS tells you otherwise
 
+def colConvert(x):
+    alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+    length = len(alpha)
+    if length >= 2:
+        #creates the dual letter colums
+        for i in range (0, length):
+            for h in range (0, length):
+                alpha.append((alpha[i] + alpha[h]))
+        if length >= 3:
+            # creates the tri colums
+            for i in range (0, length): # for(int i = 0; i < length; i++)
+                for h in range (0, length):
+                    for j in range (0, length):
+                        alpha.append((alpha[i] + alpha[h] + alpha[j]))            
+
+    return alpha.index(x)
+
 def reverseColConvert(x):
     alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
     length = len(alpha)
@@ -44,7 +61,7 @@ def verticalCheck(file = None):
     check = True
 
     for col in range(ncols):
-        if col in [0,1,2,3]:
+        if col in [0,1,2,3, colConvert('j'), colConvert('q'), colConvert('r'), colConvert('w')]:
             continue
 
         data = []
@@ -161,7 +178,7 @@ def generateTeamDocs(file = None):
         multiDoc = Document()
         for row in range(sheet.nrows):
             singleDoc = Document()
-            if row == 0 or row == 1:
+            if row in [0,1,2]:
                 continue
             
             sched = []
@@ -178,28 +195,30 @@ def generateTeamDocs(file = None):
                 if col == 2:
                     name = sheet.cell(rowx=row,colx=col).value
                     continue
-                if col == 3:
-                    continue
+                
 
                 if sheet.cell_type(row, col) != xlrd.empty_cell and sheet.cell_value(row,col) != '':
-                    sched.append(TeamEvent(sheet.cell(rowx=row,colx=col).value, time_convert(sheet.cell(rowx=1,colx=col).value), sheet.cell(rowx=0,colx=col).value))
-
+                    # event, time, session
+                    try:
+                        sched.append(TeamEvent(sheet.cell(rowx=row,colx=col).value, time_convert(sheet.cell(rowx=1,colx=col).value), sheet.cell(rowx=2,colx=col).value))
+                    except:
+                        continue
             # print('\n\n{room}\t{number}\t{name}'.format(room=room, number=number, name=name))
             
             # for i in sched:
             #    print('\t\t\t'+str(i))
             try: 
-                singleDoc.add_heading('{number}\t\t{name}'.format(number=int(number), name=name))
-                multiDoc.add_heading('{number}\t\t{name}'.format(number=int(number), name=name))
+                singleDoc.add_heading('{number}\t\t{name}\t\tRoom {room}'.format(number=int(number), name=name, room=room))
+                multiDoc.add_heading('{number}\t\t{name}\t\tRoom {room}'.format(number=int(number), name=name, room=room))
             except:
                 break
 
-            try:
-                singleDoc.add_paragraph('Room {room}'.format(room=int(room)))
-                multiDoc.add_paragraph('Room {room}'.format(room=int(room)))
-            except:
-                singleDoc.add_paragraph('Room {room}'.format(room=room))
-                multiDoc.add_paragraph('Room {room}'.format(room=room))
+            # try:
+            #     singleDoc.add_paragraph('Room {room}'.format(room=int(room)))
+            #     multiDoc.add_paragraph('Room {room}'.format(room=int(room)))
+            # except:
+            #     singleDoc.add_paragraph('Room {room}'.format(room=room))
+            #     multiDoc.add_paragraph('Room {room}'.format(room=room))
 
             singleTable = singleDoc.add_table(rows=1, cols=3)
             singleHeader = singleTable.rows[0].cells
@@ -226,17 +245,19 @@ def generateTeamDocs(file = None):
                 tbRow[1].text = i.session
                 tbRow[2].text = i.title   # VS will through an error this is actual true
 
-            singleCentered = singleDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
+            singleCentered = singleDoc.add_paragraph('\nAll times are approximate please refer to the session markers')
             singleCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            multiCentered = multiDoc.add_paragraph('\n\nAll times are approximate please refer to the session markers')
+            multiCentered = multiDoc.add_paragraph('\nAll times are approximate please refer to the session markers')
             multiCentered.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            multiDoc.add_page_break()
             try:
                 singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=int(number), name=name))
             except:
                 singleDoc.save('teamSchedule//{num}_{name}_schedule.docx'.format(num=number, name=name))
         multiDoc.save('teamSchedule//0_Full_List.docx')
+    
+    main(file=file)
         
-
 def generateJudgeDocs(file=None):
     class JudgeEvent():
         def __init__(self, teamNumber, teamName, room, time, session):
@@ -285,7 +306,7 @@ def generateJudgeDocs(file=None):
 
         judgeGroups = findJudges(sheet)
 
-        session_row = 0
+        session_row = 2
         time_row = 1 
 
         room_col = 0
@@ -351,10 +372,6 @@ def generateJudgeDocs(file=None):
             singleDoc.save('judgeSchedule//{group}.docx'.format(group=group))
         multiDoc.save('judgeSchedule//Full_Schedule.docx')
 
-            
-            
-        
-
     main(file=file)
 
 def pdfRender(folder):
@@ -365,8 +382,8 @@ def pdfRender(folder):
         exit()
 
     og = os.getcwd()
-
-    call('cd {loc}'.format(loc = folder))
+    
+    os.walk(og + "\\" + folder)
 
     for i in os.listdir():
         word = comtypes.client.CreateObject('Word.Application')
@@ -376,7 +393,7 @@ def pdfRender(folder):
         word.Quit()
 
 
-    call('cd {og}'.format(og=og))
+    os.walk(og)
 
 if __name__ == "__main__":
     try:
@@ -391,7 +408,7 @@ if __name__ == "__main__":
         print('generating judge schedules')
         generateJudgeDocs(file=file)
 
-        if os.name == 'Windows':
+        if os.name == 'nt':
             print('rendering docs as pdf')
             pdfRender('judgeSchedule')
             pdfRender('teamSchedule')
